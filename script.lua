@@ -6,6 +6,7 @@ local LocalPlayer = Players.LocalPlayer
 local AimbotEnabled = false
 local ESPEnabled = true
 local FOV_RADIUS = 90
+local AimPartName = "Head" -- parte alvo padrão do aimbot
 
 local HighlightFolder = Instance.new("Folder", game.CoreGui)
 HighlightFolder.Name = "AimbotHighlights"
@@ -29,11 +30,75 @@ Container.AnchorPoint = Vector2.new(0, 0)
 local Title = Instance.new("TextLabel", Container)
 Title.Size = UDim2.new(1, 0, 0, 25)
 Title.BackgroundTransparency = 1
-Title.Text = "Aimboot 1.1 - Tavin"
+Title.Text = "Aimbot 1.1 - Tavin"
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 18
 Title.TextColor3 = Color3.fromRGB(0, 255, 255)
 Title.TextStrokeTransparency = 0.7
+
+-- Dropdown Container (pai do dropdown)
+local DropdownContainer = Instance.new("Frame", Container)
+DropdownContainer.Size = UDim2.new(0, 80, 0, 25)
+DropdownContainer.Position = UDim2.new(1, -85, 0, 5) -- canto superior direito do Container
+DropdownContainer.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+DropdownContainer.BorderSizePixel = 1
+DropdownContainer.BorderColor3 = Color3.fromRGB(0, 255, 255)
+DropdownContainer.ClipsDescendants = true
+
+-- Botão do dropdown
+local DropdownButton = Instance.new("TextButton", DropdownContainer)
+DropdownButton.Size = UDim2.new(1, 0, 1, 0)
+DropdownButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+DropdownButton.TextColor3 = Color3.fromRGB(0, 255, 255)
+DropdownButton.Font = Enum.Font.GothamSemibold
+DropdownButton.TextSize = 14
+DropdownButton.Text = AimPartName .. " ▼" -- mostra o alvo atual
+
+-- Frame para opções (inicialmente escondido)
+local OptionsFrame = Instance.new("Frame", DropdownContainer)
+OptionsFrame.Position = UDim2.new(0, 0, 1, 2)
+OptionsFrame.Size = UDim2.new(1, 0, 0, 0)
+OptionsFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+OptionsFrame.BorderSizePixel = 1
+OptionsFrame.BorderColor3 = Color3.fromRGB(0, 255, 255)
+OptionsFrame.ClipsDescendants = true
+
+local optionNames = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}
+
+local expanded = false
+
+local function toggleDropdown()
+    if expanded then
+        -- fechar
+        OptionsFrame:TweenSize(UDim2.new(1, 0, 0, 0), "Out", "Quad", 0.2, true)
+    else
+        -- abrir
+        OptionsFrame:TweenSize(UDim2.new(1, 0, 0, #optionNames * 25), "Out", "Quad", 0.2, true)
+    end
+    expanded = not expanded
+end
+
+DropdownButton.MouseButton1Click:Connect(toggleDropdown)
+
+-- Criar os botões das opções
+for i, name in ipairs(optionNames) do
+    local btn = Instance.new("TextButton", OptionsFrame)
+    btn.Size = UDim2.new(1, 0, 0, 25)
+    btn.Position = UDim2.new(0, 0, 0, (i - 1) * 25)
+    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    btn.BorderSizePixel = 0
+    btn.TextColor3 = Color3.fromRGB(0, 255, 255)
+    btn.Font = Enum.Font.GothamSemibold
+    btn.TextSize = 14
+    btn.Text = name
+    btn.AutoButtonColor = true
+
+    btn.MouseButton1Click:Connect(function()
+        AimPartName = name
+        DropdownButton.Text = AimPartName .. " ▼"
+        toggleDropdown()
+    end)
+end
 
 -- Toggle Button
 local ToggleButton = Instance.new("TextButton", Container)
@@ -148,52 +213,44 @@ local function updateESP()
 	if not ESPEnabled then return end
 
 	for _, player in ipairs(Players:GetPlayers()) do
-		if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team then
+		if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
 			local char = player.Character
-			local hum = char and char:FindFirstChild("Humanoid")
-			local head = char and char:FindFirstChild("Head")
-
-			if char and hum and head and hum.Health > 0 then
-				local hl = HighlightFolder:FindFirstChild(player.Name)
-				if not hl then
-					hl = Instance.new("Highlight", HighlightFolder)
-					hl.Name = player.Name
-					hl.Adornee = char
-					hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-					hl.FillTransparency = 0.5
-					hl.OutlineTransparency = 1
-				end
-
-				hl.FillColor = isVisible(head) and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(255, 0, 0)
-			else
-				local old = HighlightFolder:FindFirstChild(player.Name)
-				if old then old:Destroy() end
+			local highlight = HighlightFolder:FindFirstChild(player.Name)
+			if not highlight then
+				highlight = Instance.new("Highlight", HighlightFolder)
+				highlight.Name = player.Name
+				highlight.Adornee = char
+				highlight.FillColor = Color3.fromRGB(255, 0, 0)
+				highlight.OutlineColor = Color3.fromRGB(255, 0, 0)
+				highlight.Enabled = ESPEnabled
 			end
-		else
-			local old = HighlightFolder:FindFirstChild(player.Name)
-			if old then old:Destroy() end
+		end
+	end
+
+	-- Remove highlights de jogadores que saíram
+	for _, highlight in ipairs(HighlightFolder:GetChildren()) do
+		if not Players:FindFirstChild(highlight.Name) then
+			highlight:Destroy()
 		end
 	end
 end
 
--- Inimigo mais próximo dentro do FOV
-local function getClosestVisibleEnemy()
+-- Encontra inimigo mais próximo dentro do FOV
+local function getClosestEnemy()
 	local closest = nil
-	local shortest = math.huge
+	local closestDistance = math.huge
+	local mousePos = Camera.ViewportSize / 2
 
 	for _, player in ipairs(Players:GetPlayers()) do
-		if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team then
-			local char = player.Character
-			local hum = char and char:FindFirstChild("Humanoid")
-			local head = char and char:FindFirstChild("Head")
-
-			if char and hum and head and hum.Health > 0 and isVisible(head) then
-				local screenPos, onScreen = Camera:WorldToViewportPoint(head.Position)
+		if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild(AimPartName) then
+			local part = player.Character:FindFirstChild(AimPartName)
+			if part and isVisible(part) then
+				local pos, onScreen = Camera:WorldToViewportPoint(part.Position)
 				if onScreen then
-					local dist = (Vector2.new(screenPos.X, screenPos.Y) - Camera.ViewportSize / 2).Magnitude
-					if dist < FOV_RADIUS and dist < shortest then
-						shortest = dist
+					local dist = (Vector2.new(pos.X, pos.Y) - mousePos).Magnitude
+					if dist < FOV_RADIUS and dist < closestDistance then
 						closest = player
+						closestDistance = dist
 					end
 				end
 			end
@@ -203,16 +260,15 @@ local function getClosestVisibleEnemy()
 	return closest
 end
 
--- Loop Principal
+-- Main loop do aimbot
 RunService.RenderStepped:Connect(function()
-	updateESP()
-
 	if AimbotEnabled then
-		local target = getClosestVisibleEnemy()
-		if target and target.Character and target.Character:FindFirstChild("Head") then
-			Camera.CFrame = CFrame.new(Camera.CFrame.Position,  target.Character.Head.Position)
+		local targetPlayer = getClosestEnemy()
+		if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild(AimPartName) then
+			local part = targetPlayer.Character[AimPartName]
+			Camera.CFrame = CFrame.new(Camera.CFrame.Position, part.Position)
 		end
 	end
-end)
 
-updateModeButtons()
+	updateESP()
+end)
