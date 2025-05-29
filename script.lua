@@ -6,7 +6,7 @@ local LocalPlayer = Players.LocalPlayer
 local AimbotEnabled = false
 local ESPEnabled = true
 local FOV_RADIUS = 90
-local AimPartName = "Head" -- parte alvo padrão do aimbot
+local AimPartName = "Head"
 
 local HighlightFolder = Instance.new("Folder", game.CoreGui)
 HighlightFolder.Name = "AimbotHighlights"
@@ -30,75 +30,11 @@ Container.AnchorPoint = Vector2.new(0, 0)
 local Title = Instance.new("TextLabel", Container)
 Title.Size = UDim2.new(1, 0, 0, 25)
 Title.BackgroundTransparency = 1
-Title.Text = "Aimbot 1.1 - Tavin"
+Title.Text = "Aimbot 1.1 - TavinX"
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 18
 Title.TextColor3 = Color3.fromRGB(0, 255, 255)
 Title.TextStrokeTransparency = 0.7
-
--- Dropdown Container (pai do dropdown)
-local DropdownContainer = Instance.new("Frame", Container)
-DropdownContainer.Size = UDim2.new(0, 80, 0, 25)
-DropdownContainer.Position = UDim2.new(1, -85, 0, 5) -- canto superior direito do Container
-DropdownContainer.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-DropdownContainer.BorderSizePixel = 1
-DropdownContainer.BorderColor3 = Color3.fromRGB(0, 255, 255)
-DropdownContainer.ClipsDescendants = true
-
--- Botão do dropdown
-local DropdownButton = Instance.new("TextButton", DropdownContainer)
-DropdownButton.Size = UDim2.new(1, 0, 1, 0)
-DropdownButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-DropdownButton.TextColor3 = Color3.fromRGB(0, 255, 255)
-DropdownButton.Font = Enum.Font.GothamSemibold
-DropdownButton.TextSize = 14
-DropdownButton.Text = AimPartName .. " ▼" -- mostra o alvo atual
-
--- Frame para opções (inicialmente escondido)
-local OptionsFrame = Instance.new("Frame", DropdownContainer)
-OptionsFrame.Position = UDim2.new(0, 0, 1, 2)
-OptionsFrame.Size = UDim2.new(1, 0, 0, 0)
-OptionsFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-OptionsFrame.BorderSizePixel = 1
-OptionsFrame.BorderColor3 = Color3.fromRGB(0, 255, 255)
-OptionsFrame.ClipsDescendants = true
-
-local optionNames = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}
-
-local expanded = false
-
-local function toggleDropdown()
-    if expanded then
-        -- fechar
-        OptionsFrame:TweenSize(UDim2.new(1, 0, 0, 0), "Out", "Quad", 0.2, true)
-    else
-        -- abrir
-        OptionsFrame:TweenSize(UDim2.new(1, 0, 0, #optionNames * 25), "Out", "Quad", 0.2, true)
-    end
-    expanded = not expanded
-end
-
-DropdownButton.MouseButton1Click:Connect(toggleDropdown)
-
--- Criar os botões das opções
-for i, name in ipairs(optionNames) do
-    local btn = Instance.new("TextButton", OptionsFrame)
-    btn.Size = UDim2.new(1, 0, 0, 25)
-    btn.Position = UDim2.new(0, 0, 0, (i - 1) * 25)
-    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    btn.BorderSizePixel = 0
-    btn.TextColor3 = Color3.fromRGB(0, 255, 255)
-    btn.Font = Enum.Font.GothamSemibold
-    btn.TextSize = 14
-    btn.Text = name
-    btn.AutoButtonColor = true
-
-    btn.MouseButton1Click:Connect(function()
-        AimPartName = name
-        DropdownButton.Text = AimPartName .. " ▼"
-        toggleDropdown()
-    end)
-end
 
 -- Toggle Button
 local ToggleButton = Instance.new("TextButton", Container)
@@ -153,122 +89,216 @@ LegitButton.Font = Enum.Font.GothamSemibold
 LegitButton.TextSize = 14
 LegitButton.AutoButtonColor = true
 
+-- Dropdown Container
+local DropdownContainer = Instance.new("Frame", Container)
+DropdownContainer.Size = UDim2.new(0, 80, 0, 20)
+DropdownContainer.Position = UDim2.new(1, -90, 0, 5)
+DropdownContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+DropdownContainer.BorderSizePixel = 1
+DropdownContainer.BorderColor3 = Color3.fromRGB(0, 255, 255)
+DropdownContainer.ClipsDescendants = true
+
+-- Selected Option Label
+local SelectedOption = Instance.new("TextLabel", DropdownContainer)
+SelectedOption.Size = UDim2.new(1, -20, 1, 0)
+SelectedOption.Position = UDim2.new(0, 5, 0, 0)
+SelectedOption.BackgroundTransparency = 1
+SelectedOption.TextColor3 = Color3.fromRGB(0, 255, 255)
+SelectedOption.Font = Enum.Font.GothamSemibold
+SelectedOption.TextSize = 14
+SelectedOption.TextXAlignment = Enum.TextXAlignment.Left
+SelectedOption.Text = AimPartName
+
+-- Dropdown Arrow Button
+local ArrowButton = Instance.new("TextButton", DropdownContainer)
+ArrowButton.Size = UDim2.new(0, 20, 1, 0)
+ArrowButton.Position = UDim2.new(1, -20, 0, 0)
+ArrowButton.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+ArrowButton.Text = "▼"
+ArrowButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ArrowButton.Font = Enum.Font.GothamSemibold
+ArrowButton.TextSize = 14
+ArrowButton.AutoButtonColor = true
+
+-- Options Frame (escondido por padrão)
+local OptionsFrame = Instance.new("Frame", DropdownContainer)
+OptionsFrame.Size = UDim2.new(1, 0, 0, 0)
+OptionsFrame.Position = UDim2.new(0, 0, 1, 0)
+OptionsFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+OptionsFrame.BorderSizePixel = 1
+OptionsFrame.BorderColor3 = Color3.fromRGB(0, 255, 255)
+OptionsFrame.ClipsDescendants = true
+OptionsFrame.Visible = false
+
+local optionNames = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}
+
+local expanded = false
+
+-- Função toggle do dropdown (sem tween, pra garantir abrir/fechar na moral)
+local function toggleDropdown()
+    if expanded then
+        OptionsFrame.Size = UDim2.new(1, 0, 0, 0)
+        OptionsFrame.Visible = false
+    else
+        OptionsFrame.Size = UDim2.new(1, 0, 0, #optionNames * 25)
+        OptionsFrame.Visible = true
+    end
+    expanded = not expanded
+end
+
+ArrowButton.MouseButton1Click:Connect(toggleDropdown)
+SelectedOption.MouseButton1Click:Connect(toggleDropdown)
+
+-- Criar as opções dentro do OptionsFrame
+for i, name in ipairs(optionNames) do
+    local option = Instance.new("TextButton", OptionsFrame)
+    option.Size = UDim2.new(1, 0, 0, 25)
+    option.Position = UDim2.new(0, 0, 0, (i -1) * 25)
+    option.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    option.BorderSizePixel = 1
+    option.BorderColor3 = Color3.fromRGB(0, 255, 255)
+    option.TextColor3 = Color3.fromRGB(0, 255, 255)
+    option.Font = Enum.Font.GothamSemibold
+    option.TextSize = 14
+    option.Text = name
+    option.AutoButtonColor = true
+
+    option.MouseButton1Click:Connect(function()
+        AimPartName = name
+        SelectedOption.Text = name
+        toggleDropdown()
+    end)
+end
+
 -- Atualizar visual dos botões de modo
 local function updateModeButtons()
-	if FOV_RADIUS == 360 then
-		FullButton.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
-		LegitButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-	else
-		FullButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-		LegitButton.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
-	end
+    if FOV_RADIUS == 360 then
+        FullButton.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+        LegitButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    else
+        FullButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        LegitButton.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+    end
 end
 
 FullButton.MouseButton1Click:Connect(function()
-	FOV_RADIUS = 360
-	updateModeButtons()
+    FOV_RADIUS = 360
+    updateModeButtons()
 end)
 
 LegitButton.MouseButton1Click:Connect(function()
-	FOV_RADIUS = 90
-	updateModeButtons()
+    FOV_RADIUS = 90
+    updateModeButtons()
 end)
 
 -- Toggle ESP
 ESPButton.MouseButton1Click:Connect(function()
-	ESPEnabled = not ESPEnabled
-	ESPButton.Text = ESPEnabled and "ESP: ON" or "ESP: OFF"
-	ESPButton.TextColor3 = ESPEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
-	ESPButton.BorderColor3 = ESPButton.TextColor3
-	if not ESPEnabled then
-		-- Remove todos os highlights ao desligar o ESP
-		for _, child in ipairs(HighlightFolder:GetChildren()) do
-			child:Destroy()
-		end
-	end
+    ESPEnabled = not ESPEnabled
+    ESPButton.Text = ESPEnabled and "ESP: ON" or "ESP: OFF"
+    ESPButton.TextColor3 = ESPEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+    ESPButton.BorderColor3 = ESPButton.TextColor3
+    if not ESPEnabled then
+        -- Remove todos os highlights ao desligar o ESP
+        for _, child in ipairs(HighlightFolder:GetChildren()) do
+            child:Destroy()
+        end
+    end
 end)
 
 -- Toggle Aimbot
 ToggleButton.MouseButton1Click:Connect(function()
-	AimbotEnabled = not AimbotEnabled
-	ToggleButton.Text = AimbotEnabled and "Aimbot: ON" or "Aimbot: OFF"
-	ToggleButton.TextColor3 = AimbotEnabled and Color3.fromRGB(0, 255, 255) or Color3.fromRGB(200, 200, 200)
-	ToggleButton.BorderColor3 = AimbotEnabled and Color3.fromRGB(0, 255, 255) or Color3.fromRGB(150, 150, 150)
+    AimbotEnabled = not AimbotEnabled
+    ToggleButton.Text = AimbotEnabled and "Aimbot: ON" or "Aimbot: OFF"
+    ToggleButton.TextColor3 = AimbotEnabled and Color3.fromRGB(0, 255, 255) or Color3.fromRGB(200, 200, 200)
+    ToggleButton.BorderColor3 = AimbotEnabled and Color3.fromRGB(0, 255, 255) or Color3.fromRGB(150, 150, 150)
 end)
 
--- Verifica visibilidade
+-- Verifica visibilidade com raycast
 local function isVisible(targetPart)
-	local origin = Camera.CFrame.Position
-	local direction = targetPart.Position - origin
-	local params = RaycastParams.new()
-	params.FilterDescendantsInstances = {LocalPlayer.Character, targetPart.Parent}
-	params.FilterType = Enum.RaycastFilterType.Blacklist
-
-	local result = workspace:Raycast(origin, direction, params)
-	return not result or result.Instance:IsDescendantOf(targetPart.Parent)
+    local origin = Camera.CFrame.Position
+    local direction = (targetPart.Position - origin).Unit * (targetPart.Position - origin).Magnitude
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterDescendantsInstances = {LocalPlayer.Character}
+    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+    raycastParams.IgnoreWater = true
+    local result = workspace:Raycast(origin, direction, raycastParams)
+    if result then
+        return result.Instance:IsDescendantOf(targetPart.Parent)
+    else
+        return true
+    end
 end
 
--- Atualizar ESP
+-- Busca o melhor alvo
+local function getClosestTarget()
+    local closestTarget = nil
+    local closestDistance = math.huge
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team and player.Character and player.Character:FindFirstChild(AimPartName) then
+            local targetPart = player.Character[AimPartName]
+            local screenPoint, onScreen = Camera:WorldToViewportPoint(targetPart.Position)
+            if onScreen and isVisible(targetPart) then
+                local mousePos = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
+                local targetPos = Vector2.new(screenPoint.X, screenPoint.Y)
+                local distance = (targetPos - mousePos).Magnitude
+                if distance < closestDistance and distance <= FOV_RADIUS then
+                    closestDistance = distance
+                    closestTarget = targetPart
+                end
+            end
+        end
+    end
+    return closestTarget
+end
+
+-- Atualiza ESP (highlights)
 local function updateESP()
-	if not ESPEnabled then return end
-
-	for _, player in ipairs(Players:GetPlayers()) do
-		if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-			local char = player.Character
-			local highlight = HighlightFolder:FindFirstChild(player.Name)
-			if not highlight then
-				highlight = Instance.new("Highlight", HighlightFolder)
-				highlight.Name = player.Name
-				highlight.Adornee = char
-				highlight.FillColor = Color3.fromRGB(255, 0, 0)
-				highlight.OutlineColor = Color3.fromRGB(255, 0, 0)
-				highlight.Enabled = ESPEnabled
-			end
-		end
-	end
-
-	-- Remove highlights de jogadores que saíram
-	for _, highlight in ipairs(HighlightFolder:GetChildren()) do
-		if not Players:FindFirstChild(highlight.Name) then
-			highlight:Destroy()
-		end
-	end
+    if not ESPEnabled then return end
+    -- Limpar highlights que não estão mais no jogo
+    for _, highlight in ipairs(HighlightFolder:GetChildren()) do
+        if not highlight.Adornee or not highlight.Adornee.Parent then
+            highlight:Destroy()
+        end
+    end
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local char = player.Character
+            local hrp = char.HumanoidRootPart
+            local teamColor = player.Team and player.Team.TeamColor.Color or Color3.fromRGB(255, 255, 255)
+            local isEnemy = player.Team ~= LocalPlayer.Team
+            local highlight = HighlightFolder:FindFirstChild(player.Name)
+            if ESPEnabled then
+                if not highlight then
+                    highlight = Instance.new("Highlight")
+                    highlight.Name = player.Name
+                    highlight.Adornee = char
+                    highlight.Parent = HighlightFolder
+                    highlight.FillTransparency = 0.6
+                    highlight.OutlineTransparency = 0.3
+                end
+                highlight.FillColor = isEnemy and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(0, 255, 0)
+                highlight.OutlineColor = isEnemy and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(0, 255, 0)
+            elseif highlight then
+                highlight:Destroy()
+            end
+        end
+    end
 end
 
--- Encontra inimigo mais próximo dentro do FOV
-local function getClosestEnemy()
-	local closest = nil
-	local closestDistance = math.huge
-	local mousePos = Camera.ViewportSize / 2
-
-	for _, player in ipairs(Players:GetPlayers()) do
-		if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild(AimPartName) then
-			local part = player.Character:FindFirstChild(AimPartName)
-			if part and isVisible(part) then
-				local pos, onScreen = Camera:WorldToViewportPoint(part.Position)
-				if onScreen then
-					local dist = (Vector2.new(pos.X, pos.Y) - mousePos).Magnitude
-					if dist < FOV_RADIUS and dist < closestDistance then
-						closest = player
-						closestDistance = dist
-					end
-				end
-			end
-		end
-	end
-
-	return closest
-end
-
--- Main loop do aimbot
+-- Atualiza a mira da câmera se aimbot estiver ligado
 RunService.RenderStepped:Connect(function()
-	if AimbotEnabled then
-		local targetPlayer = getClosestEnemy()
-		if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild(AimPartName) then
-			local part = targetPlayer.Character[AimPartName]
-			Camera.CFrame = CFrame.new(Camera.CFrame.Position, part.Position)
-		end
-	end
-
-	updateESP()
+    updateESP()
+    if AimbotEnabled then
+        local target = getClosestTarget()
+        if target then
+            local targetPos = target.Position
+            local camPos = Camera.CFrame.Position
+            local direction = (targetPos - camPos).Unit
+            -- Tween suave pra mirar
+            local newCFrame = CFrame.new(camPos, camPos + direction)
+            Camera.CFrame = newCFrame
+        end
+    end
 end)
+
+updateModeButtons()
